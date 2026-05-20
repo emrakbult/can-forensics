@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -10,15 +10,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from can_ai.config import Paths
-from can_ai.detection import detect_can_file, load_uploaded_csv
-from can_ai.models.supervised import method_catalog
-from can_ai.pipeline import run_pipeline
-from can_ai.reporting import report_preview
+from can_anomaly.config import Paths
+from can_anomaly.detection import detect_can_file, load_uploaded_csv
+from can_anomaly.models.supervised import method_catalog
+from can_anomaly.pipeline import run_pipeline
+from can_anomaly.reporting import report_preview
 
 
 paths = Paths()
-app = FastAPI(title="CAN Traffic AI API", version="0.1.0")
+app = FastAPI(title="CAN Traffic Detection API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,13 +71,13 @@ def health() -> dict[str, str]:
 
 @app.get("/api/results")
 def results() -> dict[str, Any]:
-    """Return all generated AI experiment outputs needed by the React UI."""
+    """Return all generated Experiment outputs needed by the React UI."""
 
     return {
         "metrics": _read_csv(paths.metrics_path),
         "cross_validation": _read_csv(paths.cv_metrics_path),
-        "per_class": _read_csv(paths.output_dir / "per_class_metrics.csv"),
-        "artifacts": _read_csv(paths.output_dir / "method_artifacts.csv"),
+        "per_class": _read_csv(paths.per_class_metrics_path),
+        "artifacts": _read_csv(paths.method_artifacts_path),
         "unsupervised": _read_json(paths.unsupervised_metrics_path),
         "metadata": _read_json(paths.metadata_path),
         "feature_metadata": _read_json(paths.feature_metadata_path),
@@ -93,7 +93,7 @@ def results() -> dict[str, Any]:
 
 @app.post("/api/run")
 def run_experiment(request: RunRequest) -> dict[str, Any]:
-    """Run the Python AI pipeline synchronously and return fresh results."""
+    """Run the Python experiment pipeline synchronously and return fresh results."""
 
     try:
         run_summary = run_pipeline(
@@ -150,3 +150,4 @@ def asset(asset_name: str) -> FileResponse:
     if not path.exists():
         raise HTTPException(status_code=404, detail="Asset has not been generated")
     return FileResponse(path)
+

@@ -1,1 +1,2 @@
-"""FastAPI backend for the React/Vite CAN AI dashboard."""
+﻿"""FastAPI backend for the React/Vite CAN traffic dashboard."""
+

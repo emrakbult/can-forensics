@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 
@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix, f1_score
 
-from can_ai.labels import LABEL_NAMES
+from can_anomaly.labels import LABEL_NAMES
 
 
 def metrics_row(model_name: str, y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float | str]:
@@ -66,3 +66,4 @@ def save_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, out_path: Path
 
 def macro_f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(f1_score(y_true, y_pred, average="macro"))
+

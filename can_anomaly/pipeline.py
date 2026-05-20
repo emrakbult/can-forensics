@@ -1,15 +1,15 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 import json
 from dataclasses import replace
 
-from can_ai.config import ExperimentConfig, Paths, WindowConfig, ensure_project_dirs
-from can_ai.features import build_window_features
-from can_ai.models.supervised import run_supervised_experiment
-from can_ai.models.unsupervised import run_unsupervised_analysis
-from can_ai.preprocessing import preprocess_raw_logs
-from can_ai.reporting import generate_ai_report
+from can_anomaly.config import ExperimentConfig, Paths, WindowConfig, ensure_project_dirs
+from can_anomaly.features import build_window_features
+from can_anomaly.models.supervised import run_supervised_experiment
+from can_anomaly.models.unsupervised import run_unsupervised_analysis
+from can_anomaly.preprocessing import preprocess_raw_logs
+from can_anomaly.reporting import generate_report
 
 
 def run_pipeline(
@@ -58,14 +58,14 @@ def run_pipeline(
         results["unsupervised"] = run_unsupervised_analysis(paths, config)
 
     if report:
-        generate_ai_report(paths)
+        generate_report(paths)
         results["report"] = str(paths.report_path)
 
     return results
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the AI-focused CAN traffic project pipeline.")
+    parser = argparse.ArgumentParser(description="Run the machine-learning-focused CAN traffic project pipeline.")
     parser.add_argument("--skip-preprocess", action="store_true", help="Use existing processed message parquet.")
     parser.add_argument("--skip-features", action="store_true", help="Use existing window feature parquet.")
     parser.add_argument("--skip-supervised", action="store_true", help="Skip supervised model comparison.")
@@ -97,3 +97,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

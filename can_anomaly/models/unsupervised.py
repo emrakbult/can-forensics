@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 
@@ -10,9 +10,9 @@ from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, s
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from can_ai.config import ExperimentConfig, Paths
-from can_ai.features import FEATURE_COLUMNS
-from can_ai.labels import LABEL_NAMES
+from can_anomaly.config import ExperimentConfig, Paths
+from can_anomaly.features import FEATURE_COLUMNS
+from can_anomaly.labels import LABEL_NAMES
 
 
 def run_unsupervised_analysis(paths: Paths, config: ExperimentConfig) -> dict[str, object]:
@@ -47,7 +47,9 @@ def run_unsupervised_analysis(paths: Paths, config: ExperimentConfig) -> dict[st
         "explained_variance_ratio": [float(x) for x in pipeline.named_steps["pca"].explained_variance_ratio_],
     }
 
-    paths.output_dir.mkdir(parents=True, exist_ok=True)
+    paths.unsupervised_metrics_dir.mkdir(parents=True, exist_ok=True)
+    paths.unsupervised_plots_dir.mkdir(parents=True, exist_ok=True)
+    paths.unsupervised_assignments_dir.mkdir(parents=True, exist_ok=True)
     with paths.unsupervised_metrics_path.open("w", encoding="utf-8") as fh:
         json.dump(metrics, fh, indent=2, ensure_ascii=False)
 
@@ -60,7 +62,7 @@ def run_unsupervised_analysis(paths: Paths, config: ExperimentConfig) -> dict[st
             "target": y.to_numpy(),
             "target_name": [LABEL_NAMES[int(v)] for v in y],
         }
-    ).to_csv(paths.output_dir / "pca_kmeans_assignments.csv", index=False)
+    ).to_csv(paths.pca_assignments_path, index=False)
 
     return metrics
 
@@ -86,3 +88,4 @@ def plot_pca_clusters(embedding, clusters, targets, out_path) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=160)
     plt.close(fig)
+

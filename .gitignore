@@ -32,7 +32,6 @@ pnpm-debug.log*
 # Generated data and model artifacts
 data/raw/
 data/processed/
-data/ai_processed/
 outputs/
 *.joblib
 *.pt

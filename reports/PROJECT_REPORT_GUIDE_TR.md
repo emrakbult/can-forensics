@@ -1,8 +1,8 @@
-# Proje Raporu Kılavuzu
+﻿# Proje Raporu Kılavuzu
 
 Asıl rapor, pipeline çalıştırıldığında şu dosyaya otomatik yazılır:
 
-`reports/AI_CAN_Traffic_Project_Report_TR.docx`
+`reports/CAN_Traffic_Anomaly_Detection_Report_TR.docx`
 
 Rapor ders şablonundaki başlıkları takip eder:
 
@@ -25,3 +25,4 @@ Sunumda özellikle şunları açıklamak gerekir:
 - K-fold cross validation sonucunun neden güvenilirlik sağladığı
 - PCA/K-Means sonucunun denetimsiz alternatif olarak nasıl yorumlandığı
 - En iyi modelin neden seçildiği
+

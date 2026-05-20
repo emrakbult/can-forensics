@@ -1,10 +1,10 @@
-import unittest
+﻿import unittest
 
 import numpy as np
 
-from can_ai.features import entropy
-from can_ai.labels import fallback_label_for_file, majority_label
-from can_ai.preprocessing import parse_numeric_token
+from can_anomaly.features import entropy
+from can_anomaly.labels import fallback_label_for_file, majority_label
+from can_anomaly.preprocessing import parse_numeric_token
 
 
 class CoreBehaviorTests(unittest.TestCase):
@@ -30,3 +30,4 @@ class CoreBehaviorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

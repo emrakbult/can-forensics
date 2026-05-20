@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -8,10 +8,10 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from can_ai.config import Paths, WindowConfig
-from can_ai.features import FEATURE_COLUMNS, _window_features
-from can_ai.labels import LABEL_NAMES
-from can_ai.preprocessing import BYTE_COLUMNS, _detect_columns, parse_numeric_token
+from can_anomaly.config import Paths, WindowConfig
+from can_anomaly.features import FEATURE_COLUMNS, _window_features
+from can_anomaly.labels import LABEL_NAMES
+from can_anomaly.preprocessing import BYTE_COLUMNS, _detect_columns, parse_numeric_token
 
 
 NORMAL_LABEL = 1
@@ -164,7 +164,7 @@ def detect_can_file(
     window: WindowConfig = WindowConfig(),
     suspicious_threshold: float = 0.05,
 ) -> dict[str, object]:
-    model_path = paths.output_dir / "best_supervised_model.joblib"
+    model_path = paths.best_supervised_model_path
     if not model_path.exists():
         raise FileNotFoundError("No trained detector found. Run an experiment first.")
 
@@ -212,3 +212,4 @@ def detect_can_file(
         "segments": _merge_suspicious_segments(predictions),
         "predictions": predictions.head(500).to_dict(orient="records"),
     }
+

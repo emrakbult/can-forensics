@@ -1,5 +1,5 @@
 {
-  "name": "can-ai-dashboard",
+  "name": "can-anomaly-dashboard",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -19,3 +19,4 @@
   },
   "devDependencies": {}
 }
+

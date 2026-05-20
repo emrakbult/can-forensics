@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import ReactMarkdown from "react-markdown";
 import {
@@ -239,7 +239,7 @@ function App() {
         <div className="brand">
           <Activity size={22} />
           <div>
-            <h1>CAN AI</h1>
+            <h1>CAN Monitor</h1>
             <p>Detection Lab</p>
           </div>
         </div>
@@ -438,9 +438,9 @@ function App() {
             <section className="infoStrip">
               <Database size={18} />
               <p>
-                <strong>Why only four files in data/ai_processed?</strong> That folder stores shared processed data:
+                <strong>Why only four files in data/processed?</strong> That folder stores shared processed data:
                 cleaned messages, metadata, window features, and feature metadata. Each method uses the same feature
-                table, then writes its own model and evaluation artifacts under outputs/ai.
+                table, then writes its own model and evaluation artifacts under outputs/experiments.
               </p>
             </section>
 
@@ -463,7 +463,7 @@ function App() {
             </section>
 
             <section className="panel">
-              <h3>Applied AI Methods</h3>
+              <h3>Applied Detection Methods</h3>
               <MethodCards methods={results.methods} metrics={results.metrics} />
             </section>
 
@@ -549,3 +549,4 @@ function App() {
 }
 
 createRoot(document.getElementById("root")).render(<App />);
+

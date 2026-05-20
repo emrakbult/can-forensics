@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from collections import Counter
 from pathlib import Path
@@ -41,3 +41,4 @@ def fallback_label_for_file(path: str | Path) -> int:
 def majority_label(values: Iterable[int]) -> int:
     counts = Counter(int(v) for v in values)
     return counts.most_common(1)[0][0]
+

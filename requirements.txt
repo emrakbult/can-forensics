@@ -2,7 +2,6 @@ pandas
 numpy
 pyarrow
 matplotlib
-torch
 scikit-learn
 tqdm
 joblib

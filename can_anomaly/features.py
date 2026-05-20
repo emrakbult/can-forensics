@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 
@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from can_ai.config import Paths, WindowConfig
-from can_ai.labels import LABEL_NAMES, majority_label
-from can_ai.preprocessing import BYTE_COLUMNS
+from can_anomaly.config import Paths, WindowConfig
+from can_anomaly.labels import LABEL_NAMES, majority_label
+from can_anomaly.preprocessing import BYTE_COLUMNS
 
 
 FEATURE_COLUMNS = [
@@ -126,3 +126,4 @@ def load_feature_matrix(paths: Paths) -> tuple[pd.DataFrame, pd.Series]:
     X = df[FEATURE_COLUMNS].copy()
     y = df["target"].astype(int)
     return X, y
+

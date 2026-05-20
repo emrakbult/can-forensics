@@ -1,6 +1,6 @@
-# CAN Traffic AI Anomaly Detection
+﻿# CAN Traffic Anomaly Detection
 
-This project is an AI-course-focused CAN traffic anomaly detection system. The main goal is to detect unusual CAN traffic from a car log and report suspicious attack windows. Model comparison is kept as supporting evidence for why the selected detector is used.
+This project is a machine-learning-course-focused CAN traffic anomaly detection system. The main goal is to detect unusual CAN traffic from a car log and report suspicious attack windows. Model comparison is kept as supporting evidence for why the selected detector is used.
 
 ## Project Goal
 
@@ -11,7 +11,7 @@ Detect unusual CAN traffic by classifying CAN message windows into four classes:
 - `Fuzzy`
 - `Impersonation`
 
-The project demonstrates the AI topics from the course notes while producing a working detector:
+The project demonstrates the machine learning topics from the course notes while producing a working detector:
 
 - data preprocessing
 - feature extraction
@@ -19,7 +19,6 @@ The project demonstrates the AI topics from the course notes while producing a w
 - k-fold cross validation
 - normalization / feature scaling
 - supervised classification
-- 1D-CNN deep learning extension
 - hyperparameter search support
 - confusion matrix and classification metrics
 - PCA and K-Means as an unsupervised alternative method
@@ -31,20 +30,20 @@ The project demonstrates the AI topics from the course notes while producing a w
 api/
   main.py                # FastAPI backend used by the React app
 
-can_ai/
+can_anomaly/
   config.py              # paths and experiment settings
   labels.py              # class names and fallback labels
   preprocessing.py       # raw CSV -> clean Parquet
   features.py            # CAN messages -> sliding-window ML features
   evaluation.py          # metrics and confusion matrix helpers
   models/
-    supervised.py        # Logistic Regression, KNN, SVM, trees, ensembles, 1D CNN
+    supervised.py        # Logistic Regression, KNN, SVM, trees, ensembles
     unsupervised.py      # PCA + K-Means
   pipeline.py            # command-line pipeline
-  reporting.py           # Turkish AI project report generator
+  reporting.py           # Turkish project report generator
 
 scripts/
-  run_ai_experiment.py   # CLI entry point
+  run_experiment.py   # CLI entry point
   run_api.py             # FastAPI entry point
 
 web/
@@ -52,36 +51,36 @@ web/
   package.json           # frontend dependencies and scripts
 
 reports/
-  AI_CAN_Traffic_Project_Report_TR.docx
+  CAN_Traffic_Anomaly_Detection_Report_TR.docx
 ```
 
-Only the new AI anomaly detection project structure is kept.
+Only the new CAN anomaly detection project structure is kept.
 
-## Run the AI Pipeline
+## Run the Experiment Pipeline
 
 Quick smoke/demo run:
 
 ```bash
 python scripts/prepare_raw_split.py --test-rows 5000 --remove-originals
-python scripts/run_ai_experiment.py --limit-rows-per-file 50000 --max-windows 8000
+python scripts/run_experiment.py --limit-rows-per-file 50000 --max-windows 8000
 ```
 
 Full preprocessing with a moderate balanced experiment sample:
 
 ```bash
-python scripts/run_ai_experiment.py --max-windows 40000
+python scripts/run_experiment.py --max-windows 40000
 ```
 
 Use all windows for model training/comparison:
 
 ```bash
-python scripts/run_ai_experiment.py --all-windows
+python scripts/run_experiment.py --all-windows
 ```
 
 Run hyperparameter search as well:
 
 ```bash
-python scripts/run_ai_experiment.py --max-windows 40000 --hyperparameter-search
+python scripts/run_experiment.py --max-windows 40000 --hyperparameter-search
 ```
 
 ## Test Data
@@ -151,25 +150,33 @@ Model comparison workflow:
 
 ## Output Folders
 
-`data/ai_processed/` contains shared data artifacts used by every method:
+`data/processed/` contains shared data artifacts used by every method:
 
 - `can_messages.parquet`
 - `metadata.json`
 - `window_features.parquet`
 - `feature_metadata.json`
 
-Per-method outputs are written under `outputs/ai/`:
+Experiment outputs are grouped by workflow under `outputs/experiments/`:
 
-- `models/*.joblib`
-- `predictions/*_predictions.csv`
-- `per_class_reports/*_per_class.csv`
-- `confusion_matrices/*_confusion_matrix.png`
-- `model_metrics.csv`
-- `cross_validation_metrics.csv`
-- `method_artifacts.csv`
+```text
+outputs/experiments/
+  supervised/
+    models/                 # trained classifiers and best_supervised_model.joblib
+    metrics/                # model, cross-validation, per-class, artifact CSV files
+    predictions/            # combined and per-model test predictions
+    per_class_reports/      # one per-class report per supervised model
+    confusion_matrices/     # best-model and per-model confusion matrices
+
+  unsupervised/
+    metrics/                # PCA/K-Means metrics JSON
+    plots/                  # PCA/K-Means visualization
+    assignments/            # PCA coordinates and K-Means cluster assignments
+```
 
 ## Important Data Fix
 
 The earlier version hardcoded `dataset1.csv -> 0` and `dataset2.csv -> 1`, while the raw CSV files contain `target` values showing `dataset1.csv` as Normal and `dataset2.csv` as DoS. The rebuilt pipeline reads the `target` column directly when it exists and only uses filename labels as a fallback.
 
 The rebuilt parser also treats CAN IDs and payload bytes as hexadecimal by default, which is the conventional representation in CAN logs.
+

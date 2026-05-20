@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from datetime import datetime
@@ -8,10 +8,10 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 import pandas as pd
 
-from can_ai.config import Paths
+from can_anomaly.config import Paths
 
 
-LEGACY_MARKDOWN_REPORT = "AI_CAN_Traffic_Project_Report_TR.md"
+LEGACY_MARKDOWN_REPORT = "CAN_Traffic_Anomaly_Detection_Report_TR.md"
 
 
 def _read_json(path: Path):
@@ -146,9 +146,9 @@ def _docx_parts(document_body: str, created_at: str) -> dict[str, str]:
   xmlns:dcterms="http://purl.org/dc/terms/"
   xmlns:dcmitype="http://purl.org/dc/dcmitype/"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <dc:title>CAN Trafiğinde Yapay Zeka Tabanlı Anomali ve Saldırı Tespiti</dc:title>
-  <dc:creator>CAN AI Project</dc:creator>
-  <cp:lastModifiedBy>CAN AI Project</cp:lastModifiedBy>
+  <dc:title>CAN Trafik Anomali Tespiti</dc:title>
+  <dc:creator>CAN Monitor Project</dc:creator>
+  <cp:lastModifiedBy>CAN Monitor Project</cp:lastModifiedBy>
   <dcterms:created xsi:type="dcterms:W3CDTF">{created_at}</dcterms:created>
   <dcterms:modified xsi:type="dcterms:W3CDTF">{created_at}</dcterms:modified>
 </cp:coreProperties>
@@ -156,7 +156,7 @@ def _docx_parts(document_body: str, created_at: str) -> dict[str, str]:
     app = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"
   xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
-  <Application>CAN AI Project</Application>
+  <Application>CAN Monitor Project</Application>
 </Properties>
 """
     return {
@@ -209,11 +209,11 @@ def _generate_report_body(paths: Paths) -> str:
     results_rows = _build_results_table(metrics, cv_metrics)
 
     body: list[str] = []
-    body.append(_paragraph("Yapay Zeka Proje Raporu", "Title", align="center"))
+    body.append(_paragraph("CAN Trafiği Anomali Tespiti Proje Raporu", "Title", align="center"))
     body.append(_paragraph(f"Oluşturulma tarihi: {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="center"))
 
     body.append(_paragraph("1. Proje Başlığı", "Heading1"))
-    body.append(_paragraph("CAN Bus Trafiğinde Yapay Zeka Tabanlı Anomali ve Saldırı Tespiti"))
+    body.append(_paragraph("CAN Bus Trafiğinde Makine Öğrenmesi Tabanlı Anomali ve Saldırı Tespiti"))
 
     body.append(_paragraph("2. Proje Ekibi", "Heading1"))
     body.append(_paragraph("Ad Soyad: [Doldurunuz]"))
@@ -225,14 +225,14 @@ def _generate_report_body(paths: Paths) -> str:
     body.append(_paragraph(
         "Bu projede araç içi CAN bus mesajlarından olağan dışı trafik ve saldırı pencereleri tespit edilmektedir. "
         "Ham CSV kayıtları temizlenmiş, zaman, CAN ID ve payload baytlarından kayan pencere özellikleri çıkarılmıştır. "
-        "Logistic Regression, KNN, Linear SVM, Decision Tree, Random Forest ve 1D-CNN modelleri aynı veri üzerinde "
+        "Logistic Regression, KNN, Linear SVM, Decision Tree ve Random Forest modelleri aynı veri üzerinde "
         "karşılaştırılmış; en iyi model yeni CAN dosyalarını sınıflandıran çalışan React/FastAPI demosunda kullanılmıştır. "
         "Ayrıca PCA ve K-Means ile denetimsiz öğrenme analizi yapılmıştır."
     ))
 
     body.append(_paragraph("4. Giriş", "Heading1"))
     body.append(_paragraph(
-        "Projenin amacı, yüklenen bir CAN trafiği dosyasında Normal dışı davranışları tespit eden uygulanabilir bir AI "
+        "Projenin amacı, yüklenen bir CAN trafiği dosyasında Normal dışı davranışları tespit eden uygulanabilir bir makine öğrenmesi "
         "prototipi geliştirmektir. Sistem her pencereyi Normal, DoS, Fuzzy veya Impersonation olarak sınıflandırır; "
         "Normal dışı pencereleri şüpheli segmentler halinde raporlar. Konu, araç güvenliği problemini gerçek veri, "
         "karşılaştırmalı model eğitimi ve çalışan demo ile birleştirdiği için seçilmiştir. Kapsam; çevrimdışı CSV "
@@ -247,10 +247,10 @@ def _generate_report_body(paths: Paths) -> str:
             f"pencere boyutu/adım: {feature_meta.get('window_size')}/{feature_meta.get('stride')}."
         )
     for line in [
-        "Algoritmalar: Logistic Regression, KNN, Linear SVM, Decision Tree, Random Forest, 1D-CNN, PCA ve K-Means.",
+        "Algoritmalar: Logistic Regression, KNN, Linear SVM, Decision Tree, Random Forest, PCA ve K-Means.",
         "Özellikler: zaman aralığı istatistikleri, CAN ID çeşitliliği, baskın ID oranı, payload istatistikleri ve entropi.",
         "Değerlendirme: train/test ayrımı, stratified k-fold cross validation, accuracy, macro F1, precision ve recall.",
-        "Teknolojiler: Python, Pandas, NumPy, Scikit-learn, PyTorch, Matplotlib, FastAPI, React ve Vite.",
+        "Teknolojiler: Python, Pandas, NumPy, Scikit-learn, Matplotlib, FastAPI, React ve Vite.",
         dataset_line,
     ]:
         body.append(_paragraph(f"- {line}"))
@@ -274,7 +274,7 @@ def _generate_report_body(paths: Paths) -> str:
             f"silhouette skoru {_fmt(unsup.get('silhouette_score_sample'))} olarak ölçülmüştür."
         ))
     body.append(_paragraph(
-        "Confusion matrix ve PCA/K-Means görselleri React arayüzünde ve outputs/ai klasöründe üretilmektedir. "
+        "Confusion matrix ve PCA/K-Means görselleri React arayüzünde ve outputs/experiments klasöründe üretilmektedir. "
         "Bağımsız test dosyalarında normal trafik temiz, DoS/Fuzzy/Impersonation dosyaları ise doğru saldırı tipiyle "
         "şüpheli olarak işaretlenmiştir. Sınırlılık olarak sistem canlı araç akışını değil, CSV dosyalarını analiz eder."
     ))
@@ -283,7 +283,7 @@ def _generate_report_body(paths: Paths) -> str:
     body.append(_paragraph(
         "Proje yalnızca hazır bir sınıflandırıcı çalıştırmak yerine CAN mesajlarından zaman, kimlik çeşitliliği, payload "
         "istatistikleri ve entropi tabanlı pencere özellikleri çıkarmaktadır. Aynı problem üzerinde ders notlarındaki "
-        "klasik yöntemler, denetimsiz PCA/K-Means yaklaşımı ve 1D-CNN birlikte denenmiştir. React arayüzü de modeli "
+        "klasik yöntemler ve denetimsiz PCA/K-Means yaklaşımı birlikte denenmiştir. React arayüzü de modeli "
         "dosya yükleme senaryosunda kullanılabilir bir anomali tespit prototipine dönüştürmektedir."
     ))
 
@@ -300,7 +300,6 @@ def _generate_report_body(paths: Paths) -> str:
     for line in [
         "Ders notları: sınıflandırma, KNN/SVM, k-fold cross validation, PCA ve K-Means.",
         "Scikit-learn dokümantasyonu.",
-        "PyTorch dokümantasyonu.",
         "FastAPI, React ve Vite dokümantasyonları.",
     ]:
         body.append(_paragraph(f"- {line}"))
@@ -318,7 +317,7 @@ def report_preview(paths: Paths) -> str:
     )
 
 
-def generate_ai_report(paths: Paths) -> str:
+def generate_report(paths: Paths) -> str:
     """Generate a Turkish DOCX project report aligned with the course template."""
 
     paths.reports_dir.mkdir(parents=True, exist_ok=True)
@@ -330,3 +329,4 @@ def generate_ai_report(paths: Paths) -> str:
         legacy_path.unlink()
 
     return report_preview(paths)
+

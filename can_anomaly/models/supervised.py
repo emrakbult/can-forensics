@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import warnings
 from pathlib import Path
@@ -22,11 +22,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
-from can_ai.config import ExperimentConfig, Paths
-from can_ai.evaluation import metrics_row, per_class_report, save_confusion_matrix
-from can_ai.features import FEATURE_COLUMNS
-from can_ai.labels import LABEL_NAMES
-from can_ai.models.cnn1d import CNN1DClassifier
+from can_anomaly.config import ExperimentConfig, Paths
+from can_anomaly.evaluation import metrics_row, per_class_report, save_confusion_matrix
+from can_anomaly.features import FEATURE_COLUMNS
+from can_anomaly.labels import LABEL_NAMES
 
 
 def model_candidates(random_state: int) -> dict[str, object]:
@@ -68,12 +67,6 @@ def model_candidates(random_state: int) -> dict[str, object]:
             n_jobs=-1,
             random_state=random_state,
         ),
-        "1D CNN": Pipeline(
-            [
-                ("scaler", StandardScaler()),
-                ("model", CNN1DClassifier(epochs=8, batch_size=256, random_state=random_state)),
-            ]
-        ),
     }
 
 
@@ -106,11 +99,6 @@ def method_catalog() -> list[dict[str, str]]:
             "family": "Ensemble of trees",
             "why": "Reduces single-tree variance by averaging many decision trees.",
         },
-        {
-            "name": "1D CNN",
-            "family": "Deep learning classifier",
-            "why": "Advanced method that applies one-dimensional convolutions over each CAN window feature vector.",
-        },
     ]
 
 
@@ -140,7 +128,7 @@ def _balanced_sample(
 
 
 def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[str, object]:
-    """Train and compare supervised AI classifiers from the course notes."""
+    """Train and compare supervised classifiers from the course notes."""
 
     df = pd.read_parquet(paths.features_path)
     df = _balanced_sample(df, max_windows=config.max_windows, random_state=config.random_state)
@@ -162,7 +150,7 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
         random_state=config.random_state,
     )
 
-    paths.output_dir.mkdir(parents=True, exist_ok=True)
+    paths.supervised_dir.mkdir(parents=True, exist_ok=True)
 
     metric_rows = []
     cv_rows = []
@@ -170,11 +158,11 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
     class_reports = []
     predictions = pd.DataFrame({"target": y_test.to_numpy()})
     trained_models = {}
-    models_dir = paths.output_dir / "models"
-    confusion_dir = paths.output_dir / "confusion_matrices"
-    prediction_dir = paths.output_dir / "predictions"
-    class_report_dir = paths.output_dir / "per_class_reports"
-    for directory in [models_dir, confusion_dir, prediction_dir, class_report_dir]:
+    models_dir = paths.supervised_models_dir
+    confusion_dir = paths.supervised_confusion_dir
+    prediction_dir = paths.supervised_predictions_dir
+    class_report_dir = paths.supervised_per_class_dir
+    for directory in [paths.supervised_metrics_dir, models_dir, confusion_dir, prediction_dir, class_report_dir]:
         directory.mkdir(parents=True, exist_ok=True)
 
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
@@ -185,7 +173,7 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
             y_train,
             scoring="f1_macro",
             cv=cv,
-            n_jobs=1 if name == "1D CNN" else -1,
+            n_jobs=-1,
         )
         cv_rows.append(
             {
@@ -235,10 +223,10 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
 
     metrics.to_csv(paths.metrics_path, index=False)
     cv_metrics.to_csv(paths.cv_metrics_path, index=False)
-    per_class.to_csv(paths.output_dir / "per_class_metrics.csv", index=False)
-    artifacts.to_csv(paths.output_dir / "method_artifacts.csv", index=False)
+    per_class.to_csv(paths.per_class_metrics_path, index=False)
+    artifacts.to_csv(paths.method_artifacts_path, index=False)
     predictions.to_csv(paths.predictions_path, index=False)
-    joblib.dump(best_model, paths.output_dir / "best_supervised_model.joblib")
+    joblib.dump(best_model, paths.best_supervised_model_path)
     save_confusion_matrix(
         y_test.to_numpy(),
         best_pred,
@@ -258,7 +246,7 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
         "best_macro_f1": float(metrics.iloc[0]["macro_f1"]),
         "metrics_path": str(paths.metrics_path),
         "cv_metrics_path": str(paths.cv_metrics_path),
-        "artifacts_path": str(paths.output_dir / "method_artifacts.csv"),
+        "artifacts_path": str(paths.method_artifacts_path),
         "search": search_summary,
     }
 
@@ -294,6 +282,7 @@ def run_random_forest_search(
         "best_score": float(search.best_score_),
         "best_params": search.best_params_,
     }
-    pd.DataFrame(search.cv_results_).to_csv(paths.output_dir / "random_forest_search.csv", index=False)
-    joblib.dump(search.best_estimator_, paths.output_dir / "best_random_forest_search.joblib")
+    pd.DataFrame(search.cv_results_).to_csv(paths.supervised_metrics_dir / "random_forest_search.csv", index=False)
+    joblib.dump(search.best_estimator_, paths.supervised_models_dir / "best_random_forest_search.joblib")
     return result
+

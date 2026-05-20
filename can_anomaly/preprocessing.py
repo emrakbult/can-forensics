@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from can_ai.config import Paths
-from can_ai.labels import LABEL_NAMES, fallback_label_for_file
+from can_anomaly.config import Paths
+from can_anomaly.labels import LABEL_NAMES, fallback_label_for_file
 
 
 BYTE_COLUMNS = [f"byte_{i}" for i in range(8)]
@@ -79,7 +79,7 @@ def preprocess_raw_logs(
 ) -> dict[str, object]:
     """Convert raw CAN CSV logs into one clean Parquet table.
 
-    The rebuilt AI pipeline reads target labels from the CSV when present. This
+    The rebuilt experiment pipeline reads target labels from the CSV when present. This
     avoids the old filename-to-label mismatch and keeps the data source explicit.
     """
 
@@ -212,3 +212,4 @@ def preprocess_raw_logs(
         json.dump(metadata, fh, indent=2, ensure_ascii=False)
 
     return metadata
+
