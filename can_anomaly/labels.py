@@ -13,8 +13,18 @@ LABEL_NAMES = {
 
 LABEL_IDS = {name: idx for idx, name in LABEL_NAMES.items()}
 
-# Used only when an uploaded/raw CSV does not contain a trustworthy target column.
+# Used only when a raw CSV does not contain a trustworthy target column.
+# The current split files normally include `target`, so these names are a safety fallback.
 FALLBACK_FILE_LABELS = {
+    "normal_train.csv": 1,
+    "normal_test.csv": 1,
+    "dos_train.csv": 0,
+    "dos_test.csv": 0,
+    "fuzzy_train.csv": 2,
+    "fuzzy_test.csv": 2,
+    "impersonation_train.csv": 3,
+    "impersonation_test.csv": 3,
+    # Original dataset aliases kept so the split script/source files remain reproducible.
     "dataset1.csv": 1,  # Normal
     "dataset2.csv": 0,  # DoS
     "dataset3.csv": 2,  # Fuzzy

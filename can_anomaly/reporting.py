@@ -199,8 +199,10 @@ def _build_results_table(metrics: pd.DataFrame, cv_metrics: pd.DataFrame) -> lis
 
 
 def _generate_report_body(paths: Paths) -> str:
-    metadata = _read_json(paths.metadata_path)
-    feature_meta = _read_json(paths.feature_metadata_path)
+    metadata = _read_json(paths.train_metadata_path)
+    test_metadata = _read_json(paths.test_metadata_path)
+    feature_meta = _read_json(paths.train_feature_metadata_path)
+    test_feature_meta = _read_json(paths.test_feature_metadata_path)
     unsup = _read_json(paths.unsupervised_metrics_path)
     metrics = pd.read_csv(paths.metrics_path) if paths.metrics_path.exists() else pd.DataFrame()
     cv_metrics = pd.read_csv(paths.cv_metrics_path) if paths.cv_metrics_path.exists() else pd.DataFrame()
@@ -241,15 +243,16 @@ def _generate_report_body(paths: Paths) -> str:
 
     body.append(_paragraph("5. Kullanılan Yöntem ve Teknolojiler", "Heading1"))
     dataset_line = "Veri seti: Normal, DoS, Fuzzy ve Impersonation sınıflarından oluşan CAN trafik kayıtları."
-    if metadata and feature_meta:
+    if metadata and feature_meta and test_metadata and test_feature_meta:
         dataset_line = (
-            f"Veri seti: {metadata.get('rows')} CAN mesajı, {feature_meta.get('rows')} kayan pencere; "
-            f"pencere boyutu/adım: {feature_meta.get('window_size')}/{feature_meta.get('stride')}."
+            f"Veri seti: train tarafında {metadata.get('rows')} CAN mesajı ve {feature_meta.get('rows')} pencere; "
+            f"test tarafında {test_metadata.get('rows')} CAN mesajı ve {test_feature_meta.get('rows')} pencere. "
+            f"Pencere boyutu/adım: {feature_meta.get('window_size')}/{feature_meta.get('stride')}."
         )
     for line in [
         "Algoritmalar: Logistic Regression, KNN, Linear SVM, Decision Tree, Random Forest, PCA ve K-Means.",
         "Özellikler: zaman aralığı istatistikleri, CAN ID çeşitliliği, baskın ID oranı, payload istatistikleri ve entropi.",
-        "Değerlendirme: train/test ayrımı, stratified k-fold cross validation, accuracy, macro F1, precision ve recall.",
+        "Değerlendirme: data/raw/train ile eğitim, data/raw/test ile bağımsız test, stratified k-fold cross validation, accuracy, macro F1, precision ve recall.",
         "Teknolojiler: Python, Pandas, NumPy, Scikit-learn, Matplotlib, FastAPI, React ve Vite.",
         dataset_line,
     ]:
@@ -258,13 +261,15 @@ def _generate_report_body(paths: Paths) -> str:
     body.append(_paragraph("6. Sonuçlar ve Değerlendirme", "Heading1"))
     body.append(_paragraph(
         "Tüm denetimli modeller aynı özellik kümesi ve aynı değerlendirme metrikleriyle karşılaştırılmıştır. "
-        "Aşağıdaki tablo test başarısını ve 5 katlı çapraz doğrulama sonucunu özetler."
+        "Modeller yalnızca data/raw/train klasöründen çıkarılan pencerelerle eğitilmiş, aşağıdaki test skorları "
+        "data/raw/test klasöründeki bağımsız dosyalardan elde edilmiştir. 5 katlı çapraz doğrulama ise eğitim "
+        "verisi üzerinde hesaplanmıştır."
     ))
     if results_rows:
         body.append(_table(["Model", "Accuracy", "Macro F1", "CV Macro F1"], results_rows))
     if best:
         body.append(_paragraph(
-            f"En iyi sonuç {best.get('model')} modeliyle elde edilmiştir. Test macro F1 skoru "
+            f"En iyi sonuç {best.get('model')} modeliyle elde edilmiştir. Bağımsız test macro F1 skoru "
             f"{_fmt(best.get('macro_f1'))} olduğundan uygulamadaki varsayılan dedektör bu modeldir."
         ))
     if unsup:
@@ -275,8 +280,8 @@ def _generate_report_body(paths: Paths) -> str:
         ))
     body.append(_paragraph(
         "Confusion matrix ve PCA/K-Means görselleri React arayüzünde ve outputs/experiments klasöründe üretilmektedir. "
-        "Bağımsız test dosyalarında normal trafik temiz, DoS/Fuzzy/Impersonation dosyaları ise doğru saldırı tipiyle "
-        "şüpheli olarak işaretlenmiştir. Sınırlılık olarak sistem canlı araç akışını değil, CSV dosyalarını analiz eder."
+        "Bağımsız test dosyaları eğitimde kullanılmadığı için raporlanan metrikler modelin ayrılmış test verisindeki "
+        "genelleme başarısını gösterir. Sınırlılık olarak sistem canlı araç akışını değil, CSV dosyalarını analiz eder."
     ))
 
     body.append(_paragraph("7. Yenilikçilik / Özgünlük Açıklaması", "Heading1"))
@@ -292,7 +297,7 @@ def _generate_report_body(paths: Paths) -> str:
         "LSTM veya GRU gibi ek sıralı derin öğrenme modelleri denenebilir.",
         "GridSearchCV / RandomizedSearchCV ile daha kapsamlı hiperparametre optimizasyonu yapılabilir.",
         "Gerçek araçtan canlı CAN akışı üzerinde çevrim içi tahmin demosu geliştirilebilir.",
-        "Dosya bazlı veya araç bazlı farklı train/test ayrımlarıyla genelleme başarısı ayrıca ölçülebilir.",
+        "Farklı araçlardan toplanmış daha çeşitli dış test setleriyle genelleme başarısı ayrıca ölçülebilir.",
     ]:
         body.append(_paragraph(f"- {line}"))
 

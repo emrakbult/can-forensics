@@ -72,6 +72,11 @@ def count_csv_rows(path: Path) -> int:
 def preprocess_raw_logs(
     paths: Paths,
     *,
+    raw_dir: Path | None = None,
+    messages_path: Path | None = None,
+    metadata_path: Path | None = None,
+    file_names: tuple[str, ...] | list[str] | None = None,
+    split_name: str = "train",
     chunksize: int = 250_000,
     id_base: str = "hex",
     limit_rows_per_file: int | None = None,
@@ -83,11 +88,22 @@ def preprocess_raw_logs(
     avoids the old filename-to-label mismatch and keeps the data source explicit.
     """
 
-    csv_files = sorted(paths.raw_dir.glob("*.csv"))
-    if not csv_files:
-        raise FileNotFoundError(f"No CSV files found in {paths.raw_dir}")
+    source_dir = raw_dir or paths.raw_dir
+    output_messages_path = messages_path or paths.messages_path
+    output_metadata_path = metadata_path or paths.metadata_path
 
-    paths.processed_dir.mkdir(parents=True, exist_ok=True)
+    if file_names is None:
+        csv_files = sorted(source_dir.glob("*.csv"))
+    else:
+        csv_files = [source_dir / name for name in file_names]
+        missing = [path.name for path in csv_files if not path.exists()]
+        if missing:
+            raise FileNotFoundError(f"Missing CSV files in {source_dir}: {', '.join(missing)}")
+
+    if not csv_files:
+        raise FileNotFoundError(f"No CSV files found in {source_dir}")
+
+    output_messages_path.parent.mkdir(parents=True, exist_ok=True)
     parts: list[pd.DataFrame] = []
     file_summaries: list[dict[str, object]] = []
     global_start = 0
@@ -196,9 +212,11 @@ def preprocess_raw_logs(
 
     messages = pd.concat(parts, ignore_index=True)
     messages["dt"] = messages["dt"].fillna(messages["dt"].median()).clip(lower=0).astype("float32")
-    messages.to_parquet(paths.messages_path, index=False)
+    messages.to_parquet(output_messages_path, index=False)
 
     metadata = {
+        "split": split_name,
+        "input_dir": str(source_dir),
         "rows": int(len(messages)),
         "columns": list(messages.columns),
         "id_base": id_base,
@@ -206,9 +224,9 @@ def preprocess_raw_logs(
         "label_map": {str(k): v for k, v in LABEL_NAMES.items()},
         "targets": {str(k): int(v) for k, v in messages["target"].value_counts().sort_index().items()},
         "files": file_summaries,
-        "output": str(paths.messages_path),
+        "output": str(output_messages_path),
     }
-    with paths.metadata_path.open("w", encoding="utf-8") as fh:
+    with output_metadata_path.open("w", encoding="utf-8") as fh:
         json.dump(metadata, fh, indent=2, ensure_ascii=False)
 
     return metadata

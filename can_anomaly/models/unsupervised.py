@@ -18,7 +18,7 @@ from can_anomaly.labels import LABEL_NAMES
 def run_unsupervised_analysis(paths: Paths, config: ExperimentConfig) -> dict[str, object]:
     """Run PCA + K-Means as the alternative unsupervised method from the notes."""
 
-    df = pd.read_parquet(paths.features_path)
+    df = pd.read_parquet(paths.train_features_path)
     if config.max_windows is not None and len(df) > config.max_windows:
         df = df.sample(n=config.max_windows, random_state=config.random_state).reset_index(drop=True)
 
@@ -40,6 +40,7 @@ def run_unsupervised_analysis(paths: Paths, config: ExperimentConfig) -> dict[st
     silhouette = float(silhouette_score(embedding[:sil_rows], clusters[:sil_rows])) if sil_rows > 1 else 0.0
     metrics = {
         "rows_used": int(len(df)),
+        "dataset": "training windows",
         "method": "PCA(n=2) + KMeans(k=4)",
         "adjusted_rand_index": float(adjusted_rand_score(y, clusters)),
         "normalized_mutual_info": float(normalized_mutual_info_score(y, clusters)),

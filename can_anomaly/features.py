@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -72,13 +73,25 @@ def _window_features(window: pd.DataFrame) -> dict[str, float | int]:
     }
 
 
-def build_window_features(paths: Paths, window: WindowConfig = WindowConfig()) -> dict[str, object]:
+def build_window_features(
+    paths: Paths,
+    window: WindowConfig = WindowConfig(),
+    *,
+    messages_path: Path | None = None,
+    features_path: Path | None = None,
+    metadata_path: Path | None = None,
+    split_name: str = "train",
+) -> dict[str, object]:
     """Create supervised ML examples from CAN messages without crossing file boundaries."""
 
-    if not paths.messages_path.exists():
-        raise FileNotFoundError(f"Missing preprocessed messages: {paths.messages_path}")
+    input_messages_path = messages_path or paths.messages_path
+    output_features_path = features_path or paths.features_path
+    output_metadata_path = metadata_path or paths.feature_metadata_path
 
-    messages = pd.read_parquet(paths.messages_path)
+    if not input_messages_path.exists():
+        raise FileNotFoundError(f"Missing preprocessed messages: {input_messages_path}")
+
+    messages = pd.read_parquet(input_messages_path)
     rows: list[dict[str, object]] = []
 
     for source_file, group in tqdm(messages.groupby("source_file", sort=True), desc="window features"):
@@ -103,17 +116,20 @@ def build_window_features(paths: Paths, window: WindowConfig = WindowConfig()) -
         raise RuntimeError("No windows were created. Check window size and input rows.")
 
     features = pd.DataFrame(rows)
-    features.to_parquet(paths.features_path, index=False)
+    output_features_path.parent.mkdir(parents=True, exist_ok=True)
+    features.to_parquet(output_features_path, index=False)
 
     metadata = {
+        "split": split_name,
         "rows": int(len(features)),
         "window_size": window.size,
         "stride": window.stride,
         "feature_columns": FEATURE_COLUMNS,
         "targets": {str(k): int(v) for k, v in features["target"].value_counts().sort_index().items()},
-        "output": str(paths.features_path),
+        "source": str(input_messages_path),
+        "output": str(output_features_path),
     }
-    with paths.feature_metadata_path.open("w", encoding="utf-8") as fh:
+    with output_metadata_path.open("w", encoding="utf-8") as fh:
         json.dump(metadata, fh, indent=2, ensure_ascii=False)
 
     return metadata

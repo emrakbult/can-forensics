@@ -14,7 +14,6 @@ from sklearn.model_selection import (
     RandomizedSearchCV,
     StratifiedKFold,
     cross_val_score,
-    train_test_split,
 )
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
@@ -130,19 +129,14 @@ def _balanced_sample(
 def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[str, object]:
     """Train and compare supervised classifiers from the course notes."""
 
-    df = pd.read_parquet(paths.features_path)
-    df = _balanced_sample(df, max_windows=config.max_windows, random_state=config.random_state)
+    train_df = pd.read_parquet(paths.train_features_path)
+    test_df = pd.read_parquet(paths.test_features_path)
+    train_df = _balanced_sample(train_df, max_windows=config.max_windows, random_state=config.random_state)
 
-    X = df[FEATURE_COLUMNS]
-    y = df["target"].astype(int)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=config.test_size,
-        random_state=config.random_state,
-        stratify=y,
-    )
+    X_train = train_df[FEATURE_COLUMNS]
+    y_train = train_df["target"].astype(int)
+    X_test = test_df[FEATURE_COLUMNS]
+    y_test = test_df["target"].astype(int)
 
     cv = StratifiedKFold(
         n_splits=config.cv_folds,
@@ -156,7 +150,7 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
     cv_rows = []
     artifact_rows = []
     class_reports = []
-    predictions = pd.DataFrame({"target": y_test.to_numpy()})
+    predictions = test_df[["target", "target_name", "source_file", "start_row", "end_row"]].reset_index(drop=True)
     trained_models = {}
     models_dir = paths.supervised_models_dir
     confusion_dir = paths.supervised_confusion_dir
@@ -199,7 +193,17 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
         model_confusion_path = confusion_dir / f"{artifact_base}_confusion_matrix.png"
 
         joblib.dump(model, model_path)
-        pd.DataFrame({"target": y_test.to_numpy(), "prediction": pred}).to_csv(model_prediction_path, index=False)
+        pd.DataFrame(
+            {
+                "target": y_test.to_numpy(),
+                "target_name": test_df["target_name"].to_numpy(),
+                "source_file": test_df["source_file"].to_numpy(),
+                "start_row": test_df["start_row"].to_numpy(),
+                "end_row": test_df["end_row"].to_numpy(),
+                "prediction": pred,
+                "prediction_label": [LABEL_NAMES[int(value)] for value in pred],
+            }
+        ).to_csv(model_prediction_path, index=False)
         model_class_report.to_csv(model_report_path, index=False)
         save_confusion_matrix(y_test.to_numpy(), pred, model_confusion_path, f"Confusion Matrix: {name}")
         artifact_rows.append(
@@ -239,7 +243,8 @@ def run_supervised_experiment(paths: Paths, config: ExperimentConfig) -> dict[st
         search_summary = run_random_forest_search(X_train, y_train, cv, config, paths)
 
     return {
-        "rows_used": int(len(df)),
+        "train_windows_used": int(len(train_df)),
+        "test_windows_used": int(len(test_df)),
         "features": FEATURE_COLUMNS,
         "labels": LABEL_NAMES,
         "best_model": best_name,

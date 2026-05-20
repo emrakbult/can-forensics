@@ -6,6 +6,20 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
+TRAIN_RAW_FILES = (
+    "normal_train.csv",
+    "dos_train.csv",
+    "fuzzy_train.csv",
+    "impersonation_train.csv",
+)
+
+TEST_RAW_FILES = (
+    "normal_test.csv",
+    "dos_test.csv",
+    "fuzzy_test.csv",
+    "impersonation_test.csv",
+)
+
 
 @dataclass(frozen=True)
 class Paths:
@@ -16,6 +30,14 @@ class Paths:
     processed_dir: Path = PROJECT_ROOT / "data" / "processed"
     output_dir: Path = PROJECT_ROOT / "outputs" / "experiments"
     reports_dir: Path = PROJECT_ROOT / "reports"
+
+    @property
+    def train_raw_dir(self) -> Path:
+        return self.root / "data" / "raw" / "train"
+
+    @property
+    def test_raw_dir(self) -> Path:
+        return self.root / "data" / "raw" / "test"
 
     @property
     def supervised_dir(self) -> Path:
@@ -59,19 +81,51 @@ class Paths:
 
     @property
     def messages_path(self) -> Path:
-        return self.processed_dir / "can_messages.parquet"
+        return self.train_messages_path
+
+    @property
+    def train_messages_path(self) -> Path:
+        return self.processed_dir / "train_can_messages.parquet"
+
+    @property
+    def test_messages_path(self) -> Path:
+        return self.processed_dir / "test_can_messages.parquet"
 
     @property
     def metadata_path(self) -> Path:
-        return self.processed_dir / "metadata.json"
+        return self.train_metadata_path
+
+    @property
+    def train_metadata_path(self) -> Path:
+        return self.processed_dir / "train_metadata.json"
+
+    @property
+    def test_metadata_path(self) -> Path:
+        return self.processed_dir / "test_metadata.json"
 
     @property
     def features_path(self) -> Path:
-        return self.processed_dir / "window_features.parquet"
+        return self.train_features_path
+
+    @property
+    def train_features_path(self) -> Path:
+        return self.processed_dir / "train_window_features.parquet"
+
+    @property
+    def test_features_path(self) -> Path:
+        return self.processed_dir / "test_window_features.parquet"
 
     @property
     def feature_metadata_path(self) -> Path:
-        return self.processed_dir / "feature_metadata.json"
+        return self.train_feature_metadata_path
+
+    @property
+    def train_feature_metadata_path(self) -> Path:
+        return self.processed_dir / "train_feature_metadata.json"
+
+    @property
+    def test_feature_metadata_path(self) -> Path:
+        return self.processed_dir / "test_feature_metadata.json"
 
     @property
     def metrics_path(self) -> Path:
@@ -131,7 +185,6 @@ class ExperimentConfig:
     """Default experiment controls chosen for a class demo."""
 
     random_state: int = 42
-    test_size: float = 0.2
     cv_folds: int = 5
     max_windows: int | None = 40_000
     id_base: str = "hex"

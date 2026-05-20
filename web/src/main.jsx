@@ -1,13 +1,11 @@
 ﻿import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import ReactMarkdown from "react-markdown";
 import {
   Activity,
   AlertTriangle,
   BarChart3,
   CheckCircle2,
   Database,
-  FileText,
   GitCompare,
   Image,
   Play,
@@ -29,6 +27,10 @@ const emptyResults = {
   unsupervised: null,
   metadata: null,
   feature_metadata: null,
+  train_metadata: null,
+  test_metadata: null,
+  train_feature_metadata: null,
+  test_feature_metadata: null,
   report: "",
   assets: {},
 };
@@ -230,7 +232,6 @@ function App() {
     { id: "models", label: "Models", icon: GitCompare },
     { id: "visuals", label: "Visuals", icon: Image },
     { id: "unsupervised", label: "Unsupervised", icon: BarChart3 },
-    { id: "report", label: "Report", icon: FileText },
   ];
 
   return (
@@ -251,7 +252,7 @@ function App() {
           </h2>
 
           <label>
-            <span>Windows</span>
+            <span>Training windows</span>
             <input
               type="range"
               min="2000"
@@ -269,11 +270,11 @@ function App() {
               checked={settings.limitRows}
               onChange={(event) => setSettings({ ...settings, limitRows: event.target.checked })}
             />
-            <span>Limit rows</span>
+            <span>Row limit</span>
           </label>
 
           <label>
-            <span>Rows per file</span>
+            <span>Max rows per file</span>
             <input
               type="number"
               min="1000"
@@ -290,7 +291,7 @@ function App() {
               checked={settings.reuse_processed}
               onChange={(event) => setSettings({ ...settings, reuse_processed: event.target.checked })}
             />
-            <span>Reuse features</span>
+            <span>Reuse processed features</span>
           </label>
 
           <label className="checkRow">
@@ -299,17 +300,17 @@ function App() {
               checked={settings.hyperparameter_search}
               onChange={(event) => setSettings({ ...settings, hyperparameter_search: event.target.checked })}
             />
-            <span>RandomizedSearchCV</span>
+            <span>RF RandomizedSearchCV</span>
           </label>
 
           <button className="primaryButton" onClick={runExperiment} disabled={loading}>
             {loading ? <RefreshCw className="spin" size={18} /> : <Play size={18} />}
-            {loading ? "Running" : "Run"}
+            {loading ? "Running" : "Run experiment"}
           </button>
 
           <button className="secondaryButton" onClick={() => loadResults().catch((err) => setError(err.message))}>
             <RefreshCw size={17} />
-            Refresh
+            Refresh results
           </button>
         </section>
       </aside>
@@ -333,8 +334,13 @@ function App() {
           <Stat label="Macro F1" value={best ? fmt(best.macro_f1) : "-"} icon={BarChart3} />
           <Stat label="Accuracy" value={best ? fmt(best.accuracy) : "-"} icon={CheckCircle2} />
           <Stat
-            label="Windows"
-            value={results.feature_metadata?.rows?.toLocaleString?.() || "-"}
+            label="Train Windows"
+            value={results.train_feature_metadata?.rows?.toLocaleString?.() || results.feature_metadata?.rows?.toLocaleString?.() || "-"}
+            icon={Database}
+          />
+          <Stat
+            label="Test Windows"
+            value={results.test_feature_metadata?.rows?.toLocaleString?.() || "-"}
             icon={Database}
           />
         </section>
@@ -438,9 +444,9 @@ function App() {
             <section className="infoStrip">
               <Database size={18} />
               <p>
-                <strong>Why only four files in data/processed?</strong> That folder stores shared processed data:
-                cleaned messages, metadata, window features, and feature metadata. Each method uses the same feature
-                table, then writes its own model and evaluation artifacts under outputs/experiments.
+                <strong>Processed train/test data:</strong> data/processed stores separate cleaned messages, metadata,
+                and window features for train and test folders. Models are fitted on train features and scored on test
+                features, then each method writes its own artifacts under outputs/experiments.
               </p>
             </section>
 
@@ -458,7 +464,7 @@ function App() {
               <div>
                 <span>Compared methods</span>
                 <strong>{results.metrics?.length || 0}</strong>
-                <small>Same features and same split</small>
+                <small>Train folder + external test folder</small>
               </div>
             </section>
 
@@ -521,19 +527,6 @@ function App() {
             ) : (
               <div className="empty">No metrics</div>
             )}
-          </section>
-        )}
-
-        {activeTab === "report" && (
-          <section className="panel reportPanel">
-            <h3>Project Report</h3>
-            {results.assets?.report_docx && (
-              <a className="reportDownload" href={assetUrl(results.assets.report_docx)}>
-                <FileText size={16} />
-                Open DOCX report
-              </a>
-            )}
-            {results.report ? <ReactMarkdown>{results.report}</ReactMarkdown> : <div className="empty">No report</div>}
           </section>
         )}
 

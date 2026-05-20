@@ -73,14 +73,23 @@ def health() -> dict[str, str]:
 def results() -> dict[str, Any]:
     """Return all generated Experiment outputs needed by the React UI."""
 
+    train_metadata = _read_json(paths.train_metadata_path)
+    test_metadata = _read_json(paths.test_metadata_path)
+    train_feature_metadata = _read_json(paths.train_feature_metadata_path)
+    test_feature_metadata = _read_json(paths.test_feature_metadata_path)
+
     return {
         "metrics": _read_csv(paths.metrics_path),
         "cross_validation": _read_csv(paths.cv_metrics_path),
         "per_class": _read_csv(paths.per_class_metrics_path),
         "artifacts": _read_csv(paths.method_artifacts_path),
         "unsupervised": _read_json(paths.unsupervised_metrics_path),
-        "metadata": _read_json(paths.metadata_path),
-        "feature_metadata": _read_json(paths.feature_metadata_path),
+        "metadata": train_metadata,
+        "feature_metadata": train_feature_metadata,
+        "train_metadata": train_metadata,
+        "test_metadata": test_metadata,
+        "train_feature_metadata": train_feature_metadata,
+        "test_feature_metadata": test_feature_metadata,
         "methods": method_catalog(),
         "report": report_preview(paths),
         "assets": {

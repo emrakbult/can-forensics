@@ -45,6 +45,7 @@ can_anomaly/
 scripts/
   run_experiment.py   # CLI entry point
   run_api.py             # FastAPI entry point
+  create_mixed_test_csv.py # mixed upload-demo CSV generator
 
 web/
   src/                   # React/Vite dashboard
@@ -99,7 +100,8 @@ data/raw/test/fuzzy_test.csv
 data/raw/test/impersonation_test.csv
 ```
 
-The training pipeline reads only `data/raw/train/`. Use files from `data/raw/test/` in the UI upload demo.
+The training pipeline fits models with `data/raw/train/` and evaluates the final model metrics with
+`data/raw/test/`. This keeps the held-out test files separate from training.
 
 To recreate the split from the original `dataset1..4.csv` files:
 
@@ -108,11 +110,16 @@ python scripts/prepare_raw_split.py --test-rows 5000 --remove-originals
 ```
 
 The test files are created from the last `5000` rows of each original dataset and are not used for training.
+For the upload demo, generate a mixed normal/attack CSV with:
+
+```bash
+python scripts/create_mixed_test_csv.py
+```
 
 ## Run the React Dashboard
 
 ```bash
-python scripts/run_api.py
+.\.venv\Scripts\python.exe scripts\run_api.py
 ```
 
 In a second terminal:
@@ -146,16 +153,19 @@ Model comparison workflow:
 - cross-validation table
 - confusion matrix for the best model
 - PCA/K-Means cluster visualization
-- generated DOCX project report
 
 ## Output Folders
 
 `data/processed/` contains shared data artifacts used by every method:
 
-- `can_messages.parquet`
-- `metadata.json`
-- `window_features.parquet`
-- `feature_metadata.json`
+- `train_can_messages.parquet`
+- `test_can_messages.parquet`
+- `train_metadata.json`
+- `test_metadata.json`
+- `train_window_features.parquet`
+- `test_window_features.parquet`
+- `train_feature_metadata.json`
+- `test_feature_metadata.json`
 
 Experiment outputs are grouped by workflow under `outputs/experiments/`:
 

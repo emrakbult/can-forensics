@@ -4,7 +4,7 @@ import argparse
 import json
 from dataclasses import replace
 
-from can_anomaly.config import ExperimentConfig, Paths, WindowConfig, ensure_project_dirs
+from can_anomaly.config import ExperimentConfig, Paths, TEST_RAW_FILES, TRAIN_RAW_FILES, WindowConfig, ensure_project_dirs
 from can_anomaly.features import build_window_features
 from can_anomaly.models.supervised import run_supervised_experiment
 from can_anomaly.models.unsupervised import run_unsupervised_analysis
@@ -36,20 +36,59 @@ def run_pipeline(
 
     results: dict[str, object] = {}
 
-    if preprocess or not paths.messages_path.exists():
-        results["preprocess"] = preprocess_raw_logs(
+    if preprocess or not paths.train_messages_path.exists():
+        results["preprocess_train"] = preprocess_raw_logs(
             paths,
+            raw_dir=paths.train_raw_dir,
+            messages_path=paths.train_messages_path,
+            metadata_path=paths.train_metadata_path,
+            file_names=TRAIN_RAW_FILES,
+            split_name="train",
             id_base=config.id_base,
             limit_rows_per_file=limit_rows_per_file,
             holdout_tail_rows=config.holdout_tail_rows,
         )
     else:
-        results["preprocess"] = f"skipped; using {paths.messages_path}"
+        results["preprocess_train"] = f"skipped; using {paths.train_messages_path}"
 
-    if features or not paths.features_path.exists():
-        results["features"] = build_window_features(paths, window)
+    if preprocess or not paths.test_messages_path.exists():
+        results["preprocess_test"] = preprocess_raw_logs(
+            paths,
+            raw_dir=paths.test_raw_dir,
+            messages_path=paths.test_messages_path,
+            metadata_path=paths.test_metadata_path,
+            file_names=TEST_RAW_FILES,
+            split_name="test",
+            id_base=config.id_base,
+            limit_rows_per_file=limit_rows_per_file,
+            holdout_tail_rows=0,
+        )
     else:
-        results["features"] = f"skipped; using {paths.features_path}"
+        results["preprocess_test"] = f"skipped; using {paths.test_messages_path}"
+
+    if features or not paths.train_features_path.exists():
+        results["features_train"] = build_window_features(
+            paths,
+            window,
+            messages_path=paths.train_messages_path,
+            features_path=paths.train_features_path,
+            metadata_path=paths.train_feature_metadata_path,
+            split_name="train",
+        )
+    else:
+        results["features_train"] = f"skipped; using {paths.train_features_path}"
+
+    if features or not paths.test_features_path.exists():
+        results["features_test"] = build_window_features(
+            paths,
+            window,
+            messages_path=paths.test_messages_path,
+            features_path=paths.test_features_path,
+            metadata_path=paths.test_feature_metadata_path,
+            split_name="test",
+        )
+    else:
+        results["features_test"] = f"skipped; using {paths.test_features_path}"
 
     if supervised:
         results["supervised"] = run_supervised_experiment(paths, config)
@@ -71,9 +110,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-supervised", action="store_true", help="Skip supervised model comparison.")
     parser.add_argument("--skip-unsupervised", action="store_true", help="Skip PCA/K-Means analysis.")
     parser.add_argument("--skip-report", action="store_true", help="Skip DOCX report generation.")
-    parser.add_argument("--max-windows", type=int, default=40_000, help="Balanced sample size for model experiments.")
-    parser.add_argument("--all-windows", action="store_true", help="Use all windows for model experiments.")
-    parser.add_argument("--limit-rows-per-file", type=int, default=None, help="Debug/smoke-test row cap per raw CSV.")
+    parser.add_argument("--max-windows", type=int, default=40_000, help="Balanced training-window sample size for model experiments.")
+    parser.add_argument("--all-windows", action="store_true", help="Use all training windows for model experiments.")
+    parser.add_argument("--limit-rows-per-file", type=int, default=None, help="Debug/smoke-test row cap per raw train/test CSV.")
     parser.add_argument("--holdout-tail-rows", type=int, default=0, help="Rows reserved from the end of each training CSV. Use 0 when data/raw/train and data/raw/test are already split.")
     parser.add_argument("--hyperparameter-search", action="store_true", help="Run RandomizedSearchCV for Random Forest.")
     return parser.parse_args()
