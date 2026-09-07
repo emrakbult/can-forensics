@@ -1,28 +1,30 @@
 ﻿# CAN Traffic Anomaly Detection
 
-This project is a machine-learning-course-focused CAN traffic anomaly detection system. The main goal is to detect unusual CAN traffic from a car log and report suspicious attack windows. Model comparison is kept as supporting evidence for why the selected detector is used.
+This project is a CAN traffic anomaly detection prototype developed as part of a **Digital Forensics course**. Its main goal is to detect unusual CAN traffic from vehicle logs and report suspicious attack windows. Model comparison is used as supporting evidence for the selected detector.
+
+The project was developed within the scope of the course and should be considered an **unfinished academic prototype**, not a complete or production-ready system.
 
 ## Project Goal
 
 Detect unusual CAN traffic by classifying CAN message windows into four classes:
 
-- `DoS`
-- `Normal`
-- `Fuzzy`
-- `Impersonation`
+* `DoS`
+* `Normal`
+* `Fuzzy`
+* `Impersonation`
 
-The project demonstrates the machine learning topics from the course notes while producing a working detector:
+The project demonstrates relevant machine learning and anomaly detection techniques while producing a working CAN traffic analysis prototype:
 
-- data preprocessing
-- feature extraction
-- train/test split
-- k-fold cross validation
-- normalization / feature scaling
-- supervised classification
-- hyperparameter search support
-- confusion matrix and classification metrics
-- PCA and K-Means as an unsupervised alternative method
-- upload-based CAN log detection
+* data preprocessing
+* feature extraction
+* train/test split
+* k-fold cross validation
+* normalization / feature scaling
+* supervised classification
+* hyperparameter search support
+* confusion matrix and classification metrics
+* PCA and K-Means as an unsupervised alternative method
+* upload-based CAN log detection
 
 ## Structure
 
